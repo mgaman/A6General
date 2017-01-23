@@ -1,0 +1,43 @@
+#######################################
+# Syntax Coloring Map For GSMShield
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+inSetup LITERAL1
+enableDebug LITERAL1
+eCIPstatus LITERAL1
+ePSstate LITERAL1
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+push KEYWORD2
+pop KEYWORD2
+ModemWrite KEYWORD2
+waitrespKEYWORD2
+SendCmdWaitResp KEYWORD2
+GetLineWithPrefix KEYWORD2
+# weak methods are helpers - implement only if you really want them
+HWReset KEYWORD2
+DebugWrite KEYWORD2
+RXFlush KEYWORD2
+
+getIMEI KEYWORD2
+getCIMI KEYWORD2
+getRTC KEYWORD1
+setRTC KEYWORD1
+getCIPstatus KEYWORD2
+getCIPstatusString KEYWORD2
+startIP KEYWORD2
+getPSstate KEYWORD2
+setPSstate KEYWORD2
+stopIP KEYWORD2
+getLocalIP KEYWORD2
+AutoConnect KEYWORD2
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+gsm	KEYWORD2
