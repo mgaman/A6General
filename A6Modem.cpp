@@ -1,6 +1,12 @@
 /*
+ *  Author: David Henry mgadriver@gmail.com
+ *  Version 1.0  Original , supports MQTT client
+ *          1.1  Code re-arrangement, added modemPrint method and removed all HW_SERIAL from A6Services
+                 style change, no more char*, now char[]
+				 
  * This source file provides services for the physical manipulation of the serial stream
  * to and from the modem
+ *
  */
 #include "Arduino.h"
 #include "A6Modem.h"
@@ -16,7 +22,7 @@ bool A6GPRSDevice::begin(long baudrate)
   HW_SERIAL.begin(A6_BAUDRATE);
   inlevel = outlevel = 0;
   //inSetup = true;
-  enableDebug = false;
+  //enableDebug = false;
   HWReset();
   if (waitresp("+CREG: 1\r\n",20000))
   {
@@ -38,9 +44,10 @@ A6GPRSDevice::A6GPRSDevice(){
 
 A6GPRSDevice::~A6GPRSDevice(){
 }
+
 void push(char c)
 {
-//  DebugWrite(c);
+//  debugWrite(c);
   comm_buf[inlevel++] = c;
   if (inlevel == COMM_BUF_LEN)  // handle wrap around
     inlevel = 0;
@@ -54,7 +61,7 @@ char A6GPRSDevice::pop()
   else
   {
     c = comm_buf[outlevel++];
-	DebugWrite(c);
+	debugWrite(c);
     if (outlevel == COMM_BUF_LEN)  // handle wrap around
       outlevel = 0;
     if (inlevel == outlevel)
@@ -63,7 +70,7 @@ char A6GPRSDevice::pop()
   return c;
 }
 
-void A6GPRSDevice::ModemWrite(char c)
+void A6GPRSDevice::modemWrite(byte c)
 {
   HW_SERIAL.write(c);
 }
@@ -80,8 +87,6 @@ bool A6GPRSDevice::waitresp(char const *response_string,int32_t timeout)
   uint32_t TimeOut = millis() + timeout;
   while (TimeOut > millis() && lengthtotest>0)
   {
-//    if (inSetup && HW_SERIAL.available())
-  //    push(HW_SERIAL.read());
     HW_SERIAL_EVENT();
     // get next char from buffer, if no match discard, if match decrement lengthtotest & get next character
     char c = pop();
@@ -89,14 +94,13 @@ bool A6GPRSDevice::waitresp(char const *response_string,int32_t timeout)
     {
       if (c == *nextChar)
       {
- //       DebugWrite('[');
         lengthtotest--;
         nextChar++;
         started = true;
       }
       else if (started)
       {
- //       DebugWrite(']');
+ //       debugWrite(']');
         lengthtotest = strlen(response_string);
         nextChar = response_string;
         started = false;
@@ -170,6 +174,21 @@ void A6GPRSDevice::RXFlush()
   while (HW_SERIAL.available())
     c = HW_SERIAL.read();
   inlevel = outlevel = 0;
+}
+
+void A6GPRSDevice::modemPrint(const __FlashStringHelper*s)
+{
+	HW_SERIAL.print(s);
+}
+
+void A6GPRSDevice::modemPrint(char s[])
+{
+	HW_SERIAL.print(s);
+}
+
+void A6GPRSDevice::modemPrint(int i)
+{
+	HW_SERIAL.print(i);
 }
 
 void HW_SERIAL_EVENT() {

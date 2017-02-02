@@ -14,49 +14,42 @@ static char *statusnames[] = {"IP INITIAL","IP START","IP CONFIG","IP IND","IP G
 
 char tempbuf[100];
 
-#if 0
-void HW_SERIAL_EVENT() {
-  while (HW_SERIAL.available())
-    gsm.push(HW_SERIAL.read());
-}
-#endif
-
-bool A6GPRS::getIMEI(char* imei)
+bool A6GPRS::getIMEI(char imei[])
 {
   bool rc;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+EGMR=2,7\r"));
+  gsm.modemPrint(F("AT+EGMR=2,7\r"));
   rc = GetLineWithPrefix("+EGMR:",imei,20,500);
   waitresp("OK\r\n",500);
   return rc;
 }
 
-bool A6GPRS::getCIMI(char* cimi)
+bool A6GPRS::getCIMI(char cimi[])
 {
   bool rc;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CIMI\r"));
+  gsm.modemPrint(F("AT+CIMI\r"));
   waitresp("\r\n",500);
   rc = GetLineWithPrefix(NULL,cimi,20,500);
   waitresp("OK\r\n",500);
   return rc;
 }
-bool A6GPRS::getRTC(char* rtc)
+bool A6GPRS::getRTC(char rtc[])
 {
   bool rc;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CCLK\r"));
+  gsm.modemPrint(F("AT+CCLK\r"));
   waitresp("\r\n",500);
   rc = GetLineWithPrefix("+CCLK:",rtc,30,500);
   waitresp("OK\r\n",500);
   return rc;
 }
-bool A6GPRS::setRTC(char* rtc)
+bool A6GPRS::setRTC(char rtc[])
 {
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CCLK=\""));
-  HW_SERIAL.print(rtc);
-  HW_SERIAL.print("\"\r");
+  gsm.modemPrint(F("AT+CCLK=\""));
+  gsm.modemPrint(rtc);
+  gsm.modemPrint("\"\r");
   return waitresp("OK\r\n",500);
 }
 
@@ -64,7 +57,7 @@ enum A6GPRS::eCIPstatus A6GPRS::getCIPstatus()
 {
   enum eCIPstatus es = IP_STATUS_UNKNOWN;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CIPSTATUS\r"));
+  gsm.modemPrint(F("AT+CIPSTATUS\r"));
   if (GetLineWithPrefix("+IPSTATUS:",tempbuf,50,1000))
   {
     char *s = tempbuf;  // skip over whitespace
@@ -93,29 +86,29 @@ char *A6GPRS::getCIPstatusString()
   return statusnames[getCIPstatus()];
 }
 
-bool A6GPRS::startIP(char *apn,char*user,char *pwd)  // apn, username, password
+bool A6GPRS::startIP(char apn[],char user[],char pwd[])  // apn, username, password
 {
   bool rc = false;
   cid = 1; //gsm.getcid();
   gsm.RXFlush();
   if (CIPstatus != IP_INITIAL)
   {
-    HW_SERIAL.print(F("AT+CIPCLOSE\r"));
+    gsm.modemPrint(F("AT+CIPCLOSE\r"));
     waitresp("OK\r\n",2000);
   }
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CGATT=1\r"));
+  gsm.modemPrint(F("AT+CGATT=1\r"));
   if (waitresp("OK\r\n",10000))
   {
     gsm.RXFlush();
     sprintf(tempbuf,"AT+CGDCONT=%d,\"IP\",\"%s\"\r",cid,apn);
-    DebugWrite(tempbuf);
-    HW_SERIAL.print(tempbuf);
+    debugWrite(tempbuf);
+    gsm.modemPrint(tempbuf);
     if (waitresp("OK\r\n",1000))
     {
       gsm.RXFlush();
       sprintf(tempbuf,"AT+CGACT=1,%d\r",cid);
-      HW_SERIAL.print(tempbuf);
+      gsm.modemPrint(tempbuf);
       if (waitresp("OK\r\n",1000))
       {
         gsm.RXFlush();
@@ -127,7 +120,7 @@ bool A6GPRS::startIP(char *apn,char*user,char *pwd)  // apn, username, password
   return rc;
 }
 
-bool A6GPRS::startIP(char *apn)  // apn
+bool A6GPRS::startIP(char apn[])  // apn
 {
   return startIP(apn,"","");
 }
@@ -136,7 +129,7 @@ bool A6GPRS::stopIP()
 {
   bool rc = false;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CIPCLOSE\r"));
+  gsm.modemPrint(F("AT+CIPCLOSE\r"));
   rc = waitresp("OK\r\n",1000);
   return rc;
 }
@@ -145,7 +138,7 @@ A6GPRS::ePSstate A6GPRS::getPSstate()
 {
   ePSstate eps = PS_UNKNOWN;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CGATT?\r"));  
+  gsm.modemPrint(F("AT+CGATT?\r"));  
   if (GetLineWithPrefix("+CGATT:",tempbuf,50,1000))
   {
     if (*tempbuf == '0')
@@ -163,20 +156,20 @@ bool A6GPRS::setPSstate(A6GPRS::ePSstate eps)
   switch (eps)
   {
     case DETACHED:
-      HW_SERIAL.print(F("AT+CGATT=0\r"));
+      gsm.modemPrint(F("AT+CGATT=0\r"));
       break;
     case ATTACHED:
-      HW_SERIAL.print(F("AT+CGATT=1\r"));
+      gsm.modemPrint(F("AT+CGATT=1\r"));
       break;
   }
   return waitresp("OK\r\n",2000);
 }
 
-bool A6GPRS::getLocalIP(char *ip)
+bool A6GPRS::getLocalIP(char ip[])
 {
   bool rc = false;
   gsm.RXFlush();
-  HW_SERIAL.print(F("AT+CIFSR\r"));
+  gsm.modemPrint(F("AT+CIFSR\r"));
   GetLineWithPrefix(NULL,ip,20,2000);
   return waitresp("OK\r\n",2000);
 }
@@ -187,28 +180,28 @@ bool A6GPRS::connectTCPserver(char*path,int port)
   if (CIPstatus == IP_CLOSE || CIPstatus == IP_GPRSACT)
   {
     sprintf(tempbuf,"AT+CIPSTART=\"TCP\",\"%s\",%d\r",path,port);
-    DebugWrite(tempbuf);
-    HW_SERIAL.print(tempbuf);
+    debugWrite(tempbuf);
+    gsm.modemPrint(tempbuf);
     if (waitresp("CONNECT OK",10000))
     {
-      DebugWrite(">>");
+      debugWrite(">>");
       waitresp("OK\r\n",10000);
       rc = true;
     }
   }
   return rc;
 }
-bool A6GPRS::sendToServer(char*msg)
+bool A6GPRS::sendToServer(char msg[])
 {
   bool rc = false;
   getCIPstatus();
   if (CIPstatus == CONNECT_OK)
   {
-    HW_SERIAL.print(F("AT+CIPSEND\r"));
+    gsm.modemPrint(F("AT+CIPSEND\r"));
     if (waitresp(">",100))
     {
-      HW_SERIAL.print(msg);
-      HW_SERIAL.write(0x1a);
+      gsm.modemPrint(msg);
+      gsm.modemWrite(0x1a);
 	  txcount += strlen(msg) + 1;
       waitresp("OK\r\n",1000);
       rc = true;
@@ -216,18 +209,18 @@ bool A6GPRS::sendToServer(char*msg)
   }
   return rc;
 }
-bool A6GPRS::sendToServer(char*msg,int length)
+bool A6GPRS::sendToServer(char msg[],int length)
 {
   bool rc = false;
   getCIPstatus();
   if (CIPstatus == CONNECT_OK)
   {
-    HW_SERIAL.print(F("AT+CIPSEND="));
-    HW_SERIAL.print(length);
-    HW_SERIAL.print(F("\r"));
+    gsm.modemPrint(F("AT+CIPSEND="));
+    gsm.modemPrint(length);
+    gsm.modemPrint(F("\r"));
     if (waitresp(">",100))
     {
-      HW_SERIAL.print(msg);
+      gsm.modemPrint(msg);
 	  txcount += length;
       waitresp("OK\r\n",1000);
       rc = true;
@@ -236,23 +229,23 @@ bool A6GPRS::sendToServer(char*msg,int length)
   return rc;
 }
 
-bool A6GPRS::sendToServer(byte*msg,int length)
+bool A6GPRS::sendToServer(byte msg[],int length)
 {
   bool rc = false;
   char buff[10];
   getCIPstatus();
   if (CIPstatus == CONNECT_OK)
   {
-    HW_SERIAL.print(F("AT+CIPSEND="));
-    HW_SERIAL.print(length);
-    HW_SERIAL.print(F("\r"));
+    gsm.modemPrint(F("AT+CIPSEND="));
+    gsm.modemPrint(length);
+    gsm.modemPrint(F("\r"));
     if (waitresp(">",100))
     {
       for (int i=0;i<length;i++)
       {
         sprintf(buff,"%02X,",msg[i]);
-        DebugWrite(buff);
-        HW_SERIAL.write(msg[i]);
+        debugWrite(buff);
+        gsm.modemWrite(msg[i]);
 		txcount++;
       }
       waitresp("OK\r\n",1000);
@@ -261,4 +254,3 @@ bool A6GPRS::sendToServer(byte*msg,int length)
   }
   return rc;
 }
-

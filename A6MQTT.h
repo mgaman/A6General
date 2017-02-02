@@ -101,7 +101,7 @@ class A6MQTT
     bool unsubscribe(unsigned int MessageID, char *SubTopic);
     bool disconnect(void);
     bool ping(void);
-    void Parse();
+    void mqttParse();
     
     void AutoConnect(void);
     void OnConnect(eConnectRC) __attribute__((weak));

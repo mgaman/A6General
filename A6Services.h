@@ -9,24 +9,23 @@ class A6GPRS: public virtual A6GPRSDevice
     enum ePSstate { DETACHED,ATTACHED,PS_UNKNOWN };
     A6GPRS(); // constructor
     ~A6GPRS(); // destructor
-    bool getIMEI(char*);
-    bool getCIMI(char*);
-    bool getRTC(char*);
-    bool setRTC(char*);
+    bool getIMEI(char[]);
+    bool getCIMI(char[]);
+    bool getRTC(char[]);
+    bool setRTC(char[]);
     enum eCIPstatus getCIPstatus();
     char *getCIPstatusString(enum eCIPstatus);
     char *getCIPstatusString();   // current value
-    bool startIP(char *);  // apn
-    bool startIP(char *,char*,char *);  // apn, username, password
+    bool startIP(char []);  // apn
+    bool startIP(char [],char[],char []);  // apn, username, password
     ePSstate getPSstate();
-  //  bool doParsing;
     bool setPSstate(ePSstate);
     bool stopIP();
-    bool getLocalIP(char *);
+    bool getLocalIP(char []);
     bool connectTCPserver(char*,int);
-    bool sendToServer(char*);
-    bool sendToServer(char*,int);  // for ascii strings
-    bool sendToServer(byte*,int);  // for byte arrays
+    bool sendToServer(char[]);
+    bool sendToServer(char[],int);  // for ascii strings
+    bool sendToServer(byte[],int);  // for byte arrays
   private:
     eCIPstatus CIPstatus;
     int cid;  // only 1 per instance of class

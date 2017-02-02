@@ -142,7 +142,7 @@ bool A6MQTT::subscribe(unsigned int MessageID, char *SubTopic, eQOS SubQoS)
  *  We look for complete modem messages & react to +CIPRCV, tgr4ansfer n bytes tp mqtt parser
  *  wait for cr/lf cr , as terminators 
  */
-void A6MQTT::Parse()
+void A6MQTT::mqttParse()
 {
   char c = gsm.pop();
   while (c != -1)
@@ -160,7 +160,7 @@ void A6MQTT::Parse()
           }
           else if (modemMessageLength == strlen("+TCPCLOSED:") && strncmp(modemmessage,"+TCPCLOSED:",11) == 0)
           {
-            gsm.DebugWrite(F("Server closed connection\r\n"));
+            gsm.debugWrite(F("Server closed connection\r\n"));
             connectedToServer = false;
             gsm.stopIP();
             gsm.getCIPstatus();
@@ -208,13 +208,13 @@ void A6MQTT::mqttparse()
   struct sVariableString *pVS;
   int16_t slengtht,slengthm;  // topic and message lengths
   uint16_t *pW,pi;
-  gsm.DebugWrite(F("<<"));
+  gsm.debugWrite(F("<<"));
   for (int ii=0;ii<pFH->rl+2;ii++)
   {
     sprintf(line,"%02X,",modemmessage[ii]);
-    gsm.DebugWrite(line);
+    gsm.debugWrite(line);
   }
-  gsm.DebugWrite(F("\r\n"));
+  gsm.debugWrite(F("\r\n"));
   switch (pFH->controlpackettype)
   {
     case MQ_CONNACK:
@@ -264,7 +264,7 @@ void A6MQTT::mqttparse()
       OnMessage(CombinedTopicMessageBuffer,&CombinedTopicMessageBuffer[slengtht+1],pFH->dup,pFH->retain,pFH->qos ); // dup & retain flags, QOS
       break;
     case MQ_PINGRESP:
-      gsm.DebugWrite(F("ping response\r\n"));
+      gsm.debugWrite(F("ping response\r\n"));
       _PingNextMillis = millis() + (_KeepAliveTimeOut*1000) - 2000;
       break;
     case MQ_PUBACK:
@@ -273,23 +273,23 @@ void A6MQTT::mqttparse()
       break;
     case MQ_UNSUBACK:
       pW = (uint16_t *)&modemmessage[2];
-      gsm.DebugWrite(F("unsuback: "));
-      gsm.DebugWrite(bswap(*pW));
-      gsm.DebugWrite(F("\r\n"));
+      gsm.debugWrite(F("unsuback: "));
+      gsm.debugWrite(bswap(*pW));
+      gsm.debugWrite(F("\r\n"));
       OnUnsubscribe(bswap(*pW));
       break;
     case MQ_PUBREC:
       pW = (uint16_t *)&modemmessage[2];
-      gsm.DebugWrite(F("pubrec: "));
-      gsm.DebugWrite(bswap(*pW));
-      gsm.DebugWrite(F("\r\n"));
+      gsm.debugWrite(F("pubrec: "));
+      gsm.debugWrite(bswap(*pW));
+      gsm.debugWrite(F("\r\n"));
       pubrel(bswap(*pW));
       break;  
     case MQ_PUBCOMP:  
       pW = (uint16_t *)&modemmessage[2];
-      gsm.DebugWrite(F("pubcomp: "));
-      gsm.DebugWrite(bswap(*pW));
-      gsm.DebugWrite(F("\r\n"));
+      gsm.debugWrite(F("pubcomp: "));
+      gsm.debugWrite(bswap(*pW));
+      gsm.debugWrite(F("\r\n"));
       OnPubAck(bswap(*pW));
       break;  
   }
@@ -347,7 +347,7 @@ bool A6MQTT::publish(char *Topic, char *Message, bool dup , bool retain ,eQOS qo
     if (qos != QOS_0)  // packetid after topic if qos 1 or 2
     {
  //     sprintf(line,"\r\nPI %x %x\r\n",packetid,bswap(packetid));
- //     gsm.DebugWrite(line);
+ //     gsm.debugWrite(line);
       *pW++ = bswap(packetid);  // if messageid written, increment pointer
     }
     // copy message after messageid which may or may not have been written 
