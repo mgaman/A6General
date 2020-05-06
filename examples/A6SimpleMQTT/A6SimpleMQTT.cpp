@@ -6,6 +6,8 @@
  *   Simple example publishes and subscribes to the same topic - see testTopic
  *   If using a public broker, choose a unique topic so you dont get swamped by other peoples stuff
  */
+#include <Arduino.h>
+
 #include "A6Services.h"
 #include "A6MQTT.h"
 
@@ -20,7 +22,7 @@ char imei[20];
 
 #define DEBUG_SERIAL Serial
 void setup() {
-  DEBUG_SERIAL.begin(115200);
+	Serial.begin(115200);
    // A6 uses default baud 115200
    // power up the board, do hardware reset & get ready to execute commands
    DEBUG_SERIAL.println("A6 Simple MQTT");
